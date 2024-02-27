@@ -134,8 +134,26 @@ SCRIPT
     ;;    
 esac
 
-echo ""
-echo "Installation completed! ⭐"
-echo "Go to app.torizon.io and provision the device!"
-echo "https://developer.toradex.com/torizon/torizon-platform/devices-fleet-management/#provisioning-a-single-device"
-echo ""
+echo "Installation of Aktualizr completed!"
+echo "Ready to pair..."
+echo "Retrieving one-time pairing token"
+
+response=$(curl -fsSL "https://app.torizon.io/api/provision-code")
+code=$(echo "$response" | awk -F'"' '/provisionCode/{print $4}')
+uuid=$(echo "$response" | awk -F'"' '/provisionUuid/{print $8}')
+
+echo "Go to https://pair.torizon.io and use code $code to provision your device"
+echo "This script will terminate automatically after the pairing process is finished!"
+
+while true; do
+    sleep 10
+
+    provision_info=$(curl -fsSL "https://app.torizon.io/api/provision-code?provisionUuid=$uuid")
+    access=$(echo "$provision_info" | awk -F'"' '/access/{print $4}')
+    if [ "$access" != "" ]; then
+        break
+    fi
+done
+
+curl -fsSL https://app.torizon.io/statics/scripts/provision-device.sh | bash -s -- -u https://app.torizon.io/api/accounts/devices -t "${access}" && systemctl restart aktualizr
+echo "Your device is provisioned! ⭐"
