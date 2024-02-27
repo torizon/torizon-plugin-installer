@@ -1,0 +1,36 @@
+name: Build Debian Package
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu:22.04', 'ubuntu:20.04', 'debian:stable', 'debian:testing', 'debian:unstable', 'debian:oldstable']
+        arch: ['amd64', 'arm64', 'armhf']
+        exclude:
+          - os: ubuntu:22.04
+            arch: arm64
+          - os: ubuntu:22.04
+            arch: armhf
+          - os: ubuntu:20.04
+            arch: arm64
+          - os: ubuntu:20.04
+            arch: armhf
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update base container
+        run: sudo apt-get -y update
+
+      - name: Set up binfmt with qemu
+        uses: docker/setup-qemu-action@v3
+
+      - name: Test script
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends curl gpg
+          docker run --rm -v $PWD:/scripts -w /scripts ${{ matrix.os }} /scripts/install-torizon-plugin.sh
