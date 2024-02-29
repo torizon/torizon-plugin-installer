@@ -1,4 +1,4 @@
-name: Build Debian Package
+name: Test Install Script
 
 on: push
 
