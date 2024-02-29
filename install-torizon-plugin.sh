@@ -72,6 +72,11 @@ deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/stagin
 deb [signed-by=/usr/share/keyrings/fluentbit-keyring.gpg] https://packages.fluentbit.io/${OS}/${CODENAME} ${CODENAME} main
 EOF
 
+    cat /etc/apt/sources.list.d/toradex.list
+    apt-get -y update -qq >/dev/null
+    apt-get -y install -qq aktualizr-torizon fluent-bit >/dev/null
+
+rm -f /etc/fluent-bit/fluent-bit.conf
     cat > /etc/fluent-bit/fluent-bit.conf <<EOF
 [SERVICE]
     flush        1
@@ -166,9 +171,6 @@ EOF
     Retry_Limit  10
 EOF
 
-    cat /etc/apt/sources.list.d/toradex.list
-    apt-get -y update -qq >/dev/null
-    apt-get -y install -qq aktualizr-torizon fluent-bit >/dev/null
 SCRIPT
 }
 
