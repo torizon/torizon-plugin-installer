@@ -58,19 +58,117 @@ fi
 install_torizon_repo () {
     SUITE=$1
     COMPONENT=$2
+
     $SUDO sh <<SCRIPT
 export DEBIAN_FRONTEND=noninteractive
 mkdir -p /usr/share/keyrings/  
 
     apt-get -y update -qq >/dev/null && apt-get install -y -qq curl gpg >/dev/null
     curl -s https://feeds.toradex.com/staging/"${OS}"/toradex-debian-repo-19092023.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
-    echo "Adding the following package feed:"
+    curl https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg
+    echo "Adding the following package feeds:"
     cat > /etc/apt/sources.list.d/toradex.list <<EOF
 deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/staging/${OS}/ ${SUITE} ${COMPONENT}
+deb [signed-by=/usr/share/keyrings/fluentbit-keyring.gpg] https://packages.fluentbit.io/${OS}/${CODENAME} ${CODENAME} main
 EOF
+
+    cat > /etc/fluent-bit/fluent-bit.conf <<EOF
+[SERVICE]
+    flush        1
+    daemon       Off
+    log_level    info
+    parsers_file parsers.conf
+    plugins_file plugins.conf
+
+[INPUT]
+    name          cpu
+    tag           cpu
+    interval_sec  300
+    Mem_Buf_Limit 5MB
+
+[FILTER]
+    Name       nest
+    Match      cpu
+    Operation  nest
+    Wildcard   *
+    Nest_under cpu
+
+[INPUT]
+    name          mem
+    tag           memory
+    interval_sec  300
+    Mem_Buf_Limit 5MB
+
+[FILTER]
+    Name       nest
+    Match      memory
+    Operation  nest
+    Wildcard   *
+    Nest_under memory
+
+[INPUT]
+    name          thermal
+    tag           temperature
+    name_regex    thermal_zone0
+    interval_sec  300
+    Mem_Buf_Limit 5MB
+
+[FILTER]
+    Name       nest
+    Match      temperature
+    Operation  nest
+    Wildcard   *
+    Nest_under temperature
+
+[INPUT]
+    name          proc
+    proc_name     dockerd
+    tag           proc_docker
+    fd            false
+    mem           false
+    interval_sec  300
+    Mem_Buf_Limit 5MB
+
+[FILTER]
+    Name       nest
+    Match      proc_docker
+    Operation  nest
+    Wildcard   *
+    Nest_under docker
+
+[INPUT]
+    Name          exec
+    Tag           emmc_health
+    Command       /usr/bin/emmc-health
+    Parser        json
+    Interval_Sec  300
+    Mem_Buf_Limit 5MB
+
+[FILTER]
+    Name       nest
+    Match      emmc_health
+    Operation  nest
+    Wildcard   *
+    Nest_under custom
+
+[OUTPUT]
+    name         http
+    match        *
+    host         dgw.torizon.io
+    port         443
+    uri          monitoring/fluentbit-metrics
+    format       json
+    tls          on
+    tls.verify   off
+    tls.ca_file  /usr/lib/sota/root.crt
+    tls.key_file /var/sota/import/pkey.pem
+    tls.crt_file /var/sota/import/client.pem
+    Retry_Limit  10
+EOF
+
     cat /etc/apt/sources.list.d/toradex.list
     apt-get -y update -qq >/dev/null
-    apt-get -y install -qq aktualizr-torizon >/dev/null
+    apt-get -y install -qq aktualizr-torizon fluent-bit >/dev/null
 SCRIPT
 }
 
@@ -131,5 +229,8 @@ while true; do
     fi
 done
 
+$SUDO sh <<SCRIPT
 curl -fsSL https://app.torizon.io/statics/scripts/provision-device.sh | bash -s -- -u https://app.torizon.io/api/accounts/devices -t "${access}" && systemctl restart aktualizr
+SCRIPT
+
 echo "Your device is provisioned! ⭐"
