@@ -104,6 +104,13 @@ esac
 esac
 
 echo "Installation of Aktualizr completed!"
+
+# Early exit for CI
+if [ -n "$DO_NOT_PROVISION" ]; then
+    # set -e is set, will exit on error
+    aktualizr-torizon --version
+    exit 0
+fi
 echo "Ready to pair..."
 echo "Retrieving one-time pairing token"
 

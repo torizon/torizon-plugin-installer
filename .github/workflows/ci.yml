@@ -31,4 +31,4 @@ jobs:
 
       - name: Test script
         run: |
-          docker run --rm -v $PWD:/scripts -w /scripts ${{ matrix.os }} /scripts/install-torizon-plugin.sh
+          docker run --rm -e DO_NOT_PROVISION=true -v $PWD:/scripts -w /scripts ${{ matrix.os }} /scripts/install-torizon-plugin.sh
