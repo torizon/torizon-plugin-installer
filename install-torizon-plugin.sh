@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# set -e
+set -e
 
 echo "======================================================"
 echo " Torizon Plugin Installer for apt-based distributions "
@@ -31,27 +31,6 @@ echo "You will be prompted for your password by sudo."
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
-curl=$(which curl)
-gpg=$(which gpg)
-
-if [ ! "$curl" ] && [ ! "$gpg" ] ; then
-    echo "Please install curl and gpg with apt-get install -y curl gpg"
-    echo "You might need to executed apt-get update before apt-get install"
-    exit 1
-fi
-
-if [ ! "$curl" ] ; then
-    echo "Please install curl with apt-get install -y curl and re-run the script"
-    echo "You might need to executed apt-get update before apt-get install"
-    exit 1
-fi
-
-if [ ! "$gpg" ] ; then
-    echo "Please install gpg with apt-get install -y gpg and re-run the script"
-    echo "You might need to executed apt-get update before apt-get install"
-    exit 1
-fi
-
 # Determine package type to install: https://unix.stackexchange.com/a/6348
 # OS used by all - for Debs it must be Ubuntu or Debian
 # CODENAME only used for Debs
@@ -76,51 +55,39 @@ else
     sudo -k
 fi
 
-case ${OS} in
-    ubuntu|debian)
-        $SUDO sh <<SCRIPT
+install_torizon_repo () {
+    SUITE=$1
+    COMPONENT=$2
+    $SUDO sh <<SCRIPT
 export DEBIAN_FRONTEND=noninteractive
 mkdir -p /usr/share/keyrings/  
 
-case ${CODENAME} in
-    jammy)
-        curl https://feeds.toradex.com/staging/${OS}/toradex-debian-repo-19092023.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
-        cat > /etc/apt/sources.list.d/toradex.list <<EOF
-deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/staging/${OS}/ ${CODENAME} main
+    apt-get -y update -qq >/dev/null && apt-get install -y -qq curl gpg >/dev/null
+    curl -s https://feeds.toradex.com/staging/"${OS}"/toradex-debian-repo-19092023.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
+    echo "Adding the following package feed:"
+    cat > /etc/apt/sources.list.d/toradex.list <<EOF
+deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/staging/${OS}/ ${SUITE} ${COMPONENT}
 EOF
-        cat /etc/apt/sources.list.d/toradex.list
-        apt-get -y update
-        apt-get -y install aktualizr-torizon
-        ;;
+    cat /etc/apt/sources.list.d/toradex.list
+    apt-get -y update -qq >/dev/null
+    apt-get -y install -qq aktualizr-torizon >/dev/null
+SCRIPT
+}
 
-    focal)
-        curl https://feeds.toradex.com/staging/${OS}/toradex-debian-repo-19092023.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
-        cat > /etc/apt/sources.list.d/toradex.list <<EOF
-deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/staging/${OS}/ ${CODENAME} main
-EOF
-        cat /etc/apt/sources.list.d/toradex.list
-        apt-get -y update
-        apt-get -y install aktualizr-torizon
+case ${OS} in
+    ubuntu|debian)
+
+case ${CODENAME} in
+    jammy|focal)
+        install_torizon_repo ${CODENAME} main
         ;;
 
     trixie)
-        curl https://feeds.toradex.com/staging/${OS}/toradex-debian-repo-19092023.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
-        cat > /etc/apt/sources.list.d/toradex.list <<EOF
-deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/staging/${OS}/ ${CODENAME} main
-EOF
-        cat /etc/apt/sources.list.d/toradex.list
-        apt-get -y update
-        apt-get -y install aktualizr-torizon
+        install_torizon_repo testing main
         ;;
 
     bookworm)
-        curl https://feeds.toradex.com/staging/${OS}/toradex-debian-repo-19092023.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
-        cat > /etc/apt/sources.list.d/toradex.list <<EOF
-deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/staging/${OS}/ ${CODENAME} main
-EOF
-        cat /etc/apt/sources.list.d/toradex.list
-        apt-get -y update
-        apt-get -y install aktualizr-torizon
+        install_torizon_repo stable main
         ;;
 
     *)
@@ -129,7 +96,6 @@ EOF
         ;;
 esac
 
-SCRIPT
     ;;
     *)
         echo "${OS} not supported."
