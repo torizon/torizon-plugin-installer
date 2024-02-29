@@ -182,10 +182,6 @@ case ${CODENAME} in
         install_torizon_repo ${CODENAME} main
         ;;
 
-    trixie)
-        install_torizon_repo testing main
-        ;;
-
     bookworm)
         install_torizon_repo stable main
         ;;

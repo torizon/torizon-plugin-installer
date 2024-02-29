@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu:22.04', 'ubuntu:20.04', 'debian:stable', 'debian:testing', 'debian:unstable']
+        os: ['ubuntu:22.04', 'ubuntu:20.04', 'debian:stable']
         arch: ['amd64', 'arm64', 'armhf']
         exclude:
           - os: ubuntu:22.04
