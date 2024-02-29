@@ -28,6 +28,9 @@ echo '                                                    '
 
 echo "You will be prompted for your password by sudo."
 
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
 curl=$(which curl)
 gpg=$(which gpg)
 
@@ -131,7 +134,7 @@ SCRIPT
     *)
         echo "${OS} not supported."
         exit 1
-    ;;    
+    ;;
 esac
 
 echo "Installation of Aktualizr completed!"
@@ -142,7 +145,7 @@ response=$(curl -fsSL "https://app.torizon.io/api/provision-code")
 code=$(echo "$response" | awk -F'"' '/provisionCode/{print $4}')
 uuid=$(echo "$response" | awk -F'"' '/provisionUuid/{print $8}')
 
-echo "Go to https://pair.torizon.io and use code $code to provision your device"
+echo -e "👉 Go to https://pair.torizon.io and use code ${YELLOW}$code ${NC}to provision your device"
 echo "This script will terminate automatically after the pairing process is finished!"
 
 while true; do
