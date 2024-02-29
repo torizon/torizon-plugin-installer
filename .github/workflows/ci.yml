@@ -31,6 +31,4 @@ jobs:
 
       - name: Test script
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends curl gpg
           docker run --rm -v $PWD:/scripts -w /scripts ${{ matrix.os }} /scripts/install-torizon-plugin.sh
