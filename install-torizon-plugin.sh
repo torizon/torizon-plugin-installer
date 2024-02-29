@@ -118,7 +118,7 @@ response=$(curl -fsSL "https://app.torizon.io/api/provision-code")
 code=$(echo "$response" | awk -F'"' '/provisionCode/{print $4}')
 uuid=$(echo "$response" | awk -F'"' '/provisionUuid/{print $8}')
 
-echo -e "👉 Go to https://pair.torizon.io and use code ${YELLOW}$code ${NC}to provision your device"
+echo "👉 Go to https://pair.torizon.io and use code ${YELLOW}$code ${NC}to provision your device"
 echo "This script will terminate automatically after the pairing process is finished!"
 
 while true; do
