@@ -74,7 +74,7 @@ EOF
 
     cat /etc/apt/sources.list.d/toradex.list
     apt-get -y update -qq >/dev/null
-    apt-get -y install -qq aktualizr-torizon fluent-bit >/dev/null
+    apt-get -y install -qq aktualizr-torizon fluent-bit rac >/dev/null
 
 rm -f /etc/fluent-bit/fluent-bit.conf
     cat > /etc/fluent-bit/fluent-bit.conf <<EOF
