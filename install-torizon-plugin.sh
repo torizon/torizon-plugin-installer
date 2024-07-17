@@ -178,7 +178,7 @@ case ${OS} in
     ubuntu|debian)
 
 case ${CODENAME} in
-    jammy|focal)
+    noble|jammy|focal)
         install_torizon_repo ${CODENAME} main
         ;;
 
