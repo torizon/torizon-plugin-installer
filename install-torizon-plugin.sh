@@ -179,7 +179,7 @@ case ${OS} in
 
 case ${CODENAME} in
     noble|jammy|focal)
-        install_torizon_repo ${CODENAME} main
+        install_torizon_repo "${CODENAME}" main
         ;;
 
     bookworm)
