@@ -186,6 +186,10 @@ case ${CODENAME} in
         install_torizon_repo stable main
         ;;
 
+    bullseye)
+        install_torizon_repo oldstable main
+        ;;
+
     *)
         echo "Unsupported release: ${CODENAME} for ${OS}."
         exit 1
