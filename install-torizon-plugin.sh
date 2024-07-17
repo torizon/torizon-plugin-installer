@@ -177,30 +177,31 @@ SCRIPT
 case ${OS} in
     ubuntu|debian)
 
-case ${CODENAME} in
-    noble|jammy|focal)
-        install_torizon_repo "${CODENAME}" main
+        case ${CODENAME} in
+            noble|jammy|focal)
+                install_torizon_repo "${CODENAME}" main
+                ;;
+
+            bookworm)
+                install_torizon_repo stable main
+                ;;
+
+            bullseye)
+                install_torizon_repo oldstable main
+                ;;
+
+            *)
+                echo "Unsupported release: ${CODENAME} for ${OS}."
+                exit 1
+                ;;
+        esac
+
         ;;
 
-    bookworm)
-        install_torizon_repo stable main
-        ;;
-
-    bullseye)
-        install_torizon_repo oldstable main
-        ;;
-
-    *)
-        echo "Unsupported release: ${CODENAME} for ${OS}."
-        exit 1
-        ;;
-esac
-
-    ;;
     *)
         echo "${OS} not supported."
         exit 1
-    ;;
+        ;;
 esac
 
 echo "Installation of Aktualizr completed!"
