@@ -26,7 +26,6 @@ echo '                  *****     ******                  '
 echo '                      ********                      '      
 echo '                                                    '      
 
-echo "You will be prompted for your password by sudo."
 
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
@@ -47,10 +46,13 @@ else
     OS=$(uname -s)
 fi
 
+ARCH=$(dpkg --print-architecture)
+
 SUDO=sudo
 if [ "$(id -u)" -eq 0 ]; then
     SUDO=''
 else
+    echo "You will be prompted for your password by sudo."
     # Clear any previous sudo permission
     sudo -k
 fi
@@ -74,8 +76,9 @@ EOF
 
     cat /etc/apt/sources.list.d/toradex.list
     apt-get -y update -qq >/dev/null
-    apt-get -y install -qq aktualizr-torizon fluent-bit >/dev/null
+    apt-get -y install -qq ${PKGS_TO_INSTALL} >/dev/null
 
+if [ -f /etc/fluent-bit/fluent-bit.conf ]; then
 rm -f /etc/fluent-bit/fluent-bit.conf
     cat > /etc/fluent-bit/fluent-bit.conf <<EOF
 [SERVICE]
@@ -170,33 +173,54 @@ rm -f /etc/fluent-bit/fluent-bit.conf
     tls.crt_file /var/sota/import/client.pem
     Retry_Limit  10
 EOF
+fi
 
 SCRIPT
 }
 
-case ${OS} in
-    ubuntu|debian)
-
-case ${CODENAME} in
-    jammy|focal)
-        install_torizon_repo ${CODENAME} main
+case ${ARCH} in
+    amd64|arm64)
+        PKGS_TO_INSTALL="aktualizr-torizon fluent-bit rac"
         ;;
 
-    bookworm)
-        install_torizon_repo stable main
+    armhf)
+        PKGS_TO_INSTALL="aktualizr-torizon rac"
         ;;
 
     *)
-        echo "Unsupported release: ${CODENAME} for ${OS}."
+        echo "${ARCH} not supported."
         exit 1
         ;;
 esac
 
-    ;;
+case ${OS} in
+    ubuntu|debian)
+
+        case ${CODENAME} in
+            noble|jammy|focal)
+                install_torizon_repo "${CODENAME}" main
+                ;;
+
+            bookworm)
+                install_torizon_repo stable main
+                ;;
+
+            bullseye)
+                install_torizon_repo oldstable main
+                ;;
+
+            *)
+                echo "Unsupported release: ${CODENAME} for ${OS}."
+                exit 1
+                ;;
+        esac
+
+        ;;
+
     *)
         echo "${OS} not supported."
         exit 1
-    ;;
+        ;;
 esac
 
 echo "Installation of Aktualizr completed!"
@@ -232,3 +256,5 @@ curl -fsSL https://app.torizon.io/statics/scripts/provision-device.sh | bash -s 
 SCRIPT
 
 echo "Your device is provisioned! ⭐"
+echo "Create the torizon user to be able to use remote access"
+echo "${SUDO} adduser torizon && ${SUDO} systemctl restart remote-access"
