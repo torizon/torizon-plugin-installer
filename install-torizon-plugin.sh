@@ -47,6 +47,8 @@ else
     OS=$(uname -s)
 fi
 
+ARCH=$(dpkg --print-architecture)
+
 SUDO=sudo
 if [ "$(id -u)" -eq 0 ]; then
     SUDO=''
@@ -74,7 +76,7 @@ EOF
 
     cat /etc/apt/sources.list.d/toradex.list
     apt-get -y update -qq >/dev/null
-    apt-get -y install -qq aktualizr-torizon fluent-bit rac >/dev/null
+    apt-get -y install -qq ${PKGS_TO_INSTALL} >/dev/null
 
 rm -f /etc/fluent-bit/fluent-bit.conf
     cat > /etc/fluent-bit/fluent-bit.conf <<EOF
@@ -173,6 +175,21 @@ EOF
 
 SCRIPT
 }
+
+case ${ARCH} in
+    amd64|arm64)
+        PKGS_TO_INSTALL="aktualizr-torizon fluent-bit rac"
+        ;;
+
+    armhf)
+        PKGS_TO_INSTALL="aktualizr-torizon rac"
+        ;;
+
+    *)
+        echo "${ARCH} not supported."
+        exit 1
+        ;;
+esac
 
 case ${OS} in
     ubuntu|debian)
