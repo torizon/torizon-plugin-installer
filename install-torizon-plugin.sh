@@ -78,6 +78,7 @@ EOF
     apt-get -y update -qq >/dev/null
     apt-get -y install -qq ${PKGS_TO_INSTALL} >/dev/null
 
+if [ -f /etc/fluent-bit/fluent-bit.conf ]; then
 rm -f /etc/fluent-bit/fluent-bit.conf
     cat > /etc/fluent-bit/fluent-bit.conf <<EOF
 [SERVICE]
@@ -172,6 +173,7 @@ rm -f /etc/fluent-bit/fluent-bit.conf
     tls.crt_file /var/sota/import/client.pem
     Retry_Limit  10
 EOF
+fi
 
 SCRIPT
 }
