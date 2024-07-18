@@ -254,3 +254,5 @@ curl -fsSL https://app.torizon.io/statics/scripts/provision-device.sh | bash -s 
 SCRIPT
 
 echo "Your device is provisioned! ⭐"
+echo "Create the torizon user to be able to use remote access"
+echo "${SUDO} adduser torizon && ${SUDO} systemctl restart remote-access"
