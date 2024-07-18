@@ -26,7 +26,6 @@ echo '                  *****     ******                  '
 echo '                      ********                      '      
 echo '                                                    '      
 
-echo "You will be prompted for your password by sudo."
 
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
@@ -53,6 +52,7 @@ SUDO=sudo
 if [ "$(id -u)" -eq 0 ]; then
     SUDO=''
 else
+    echo "You will be prompted for your password by sudo."
     # Clear any previous sudo permission
     sudo -k
 fi
