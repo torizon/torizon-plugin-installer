@@ -61,9 +61,11 @@ install_torizon_repo () {
     SUITE=$1
     COMPONENT=$2
 
+    echo "Installation has started, it may take a few minutes."
+
     $SUDO sh <<SCRIPT
 export DEBIAN_FRONTEND=noninteractive
-mkdir -p /usr/share/keyrings/  
+mkdir -p /usr/share/keyrings/
 
     apt-get -y update -qq >/dev/null && apt-get install -y -qq curl gpg >/dev/null
     curl -s https://feeds.toradex.com/staging/"${OS}"/toradex-debian-repo-19092023.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
