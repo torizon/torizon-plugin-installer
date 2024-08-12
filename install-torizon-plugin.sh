@@ -68,12 +68,16 @@ export DEBIAN_FRONTEND=noninteractive
 mkdir -p /usr/share/keyrings/
 
     apt-get -y update -qq >/dev/null && apt-get install -y -qq curl gpg >/dev/null
-    curl -s https://feeds.toradex.com/staging/"${OS}"/toradex-debian-repo-19092023.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
-    curl https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg
+
+    curl -fsSL https://feeds.toradex.com/staging/"${OS}"/toradex-debian-repo-19092023.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
+    curl -fsSL https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg
+    curl -fsSL "https://download.docker.com/linux/${OS}/gpg" | gpg --dearmor > /usr/share/keyrings/docker.gpg
+
     echo "Adding the following package feeds:"
     cat > /etc/apt/sources.list.d/toradex.list <<EOF
 deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/staging/${OS}/ ${SUITE} ${COMPONENT}
 deb [signed-by=/usr/share/keyrings/fluentbit-keyring.gpg] https://packages.fluentbit.io/${OS}/${CODENAME} ${CODENAME} main
+deb [signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/${OS} ${CODENAME} stable
 EOF
 
     cat /etc/apt/sources.list.d/toradex.list
@@ -192,16 +196,17 @@ fi
         adduser ${adduser_gecos_opt} '' torizon
     fi
     adduser torizon sudo
+    adduser torizon docker
 SCRIPT
 }
 
 case ${ARCH} in
     amd64|arm64)
-        PKGS_TO_INSTALL="aktualizr-torizon fluent-bit rac"
+        PKGS_TO_INSTALL="aktualizr-torizon containerd.io docker-ce docker-ce-cli docker-compose-plugin fluent-bit rac"
         ;;
 
     armhf)
-        PKGS_TO_INSTALL="aktualizr-torizon rac"
+        PKGS_TO_INSTALL="aktualizr-torizon containerd.io docker-ce docker-ce-cli docker-compose-plugin rac"
         ;;
 
     *)
