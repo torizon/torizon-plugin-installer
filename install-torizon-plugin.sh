@@ -43,6 +43,17 @@ check_if_already_provisioned () {
   fi
 }
 
+check_if_install () {
+  read -rp "Do you want to continue? [Y/n]" install
+  if [ -z "$install" ] || [ "$install" = "Y" ] || [ "$install" = "y" ]; then
+    :
+  elif [ "$install" = "N" ] || [ "$install" = "n" ]; then
+    exit 0
+  else
+    check_if_install
+  fi
+}
+
 # Determine package type to install: https://unix.stackexchange.com/a/6348
 # OS used by all - for Debs it must be Ubuntu or Debian
 # CODENAME only used for Debs
@@ -214,6 +225,14 @@ SCRIPT
 }
 
 check_if_already_provisioned
+
+echo "This script will:
+  - Add Toradex's, Fluent Bit's and Docker's package feed to your system;
+  - Install fluent-bit, docker, aktualizr and rac (remote access client) applications;
+  - Create torizon user and add it to sudo and docker groups;
+  - Attempt to provision the device on Torizon Cloud using a pair code."
+
+check_if_install
 
 case ${ARCH} in
     amd64|arm64)
