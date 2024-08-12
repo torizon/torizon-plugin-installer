@@ -170,7 +170,7 @@ rm -f /etc/fluent-bit/fluent-bit.conf
     format       json
     tls          on
     tls.verify   off
-    tls.ca_file  /usr/lib/sota/root.crt
+    tls.ca_file  /etc/sota/root.crt
     tls.key_file /var/sota/import/pkey.pem
     tls.crt_file /var/sota/import/client.pem
     Retry_Limit  10
