@@ -177,6 +177,21 @@ rm -f /etc/fluent-bit/fluent-bit.conf
 EOF
 fi
 
+    # gecos option has changed to comment in bookworm or newer
+    case $CODENAME in
+        noble|bookworm)
+            adduser_gecos_opt="--comment"
+            ;;
+        *)
+            adduser_gecos_opt="--gecos"
+            ;;
+    esac
+
+    if [ -z "$(id -u torizon)" ]; then
+        echo "Now we have to create the torizon user so remote access works out of the box. Please, fill in the password for torizon user."
+        adduser ${adduser_gecos_opt} '' torizon
+    fi
+    adduser torizon sudo
 SCRIPT
 }
 
@@ -258,5 +273,3 @@ curl -fsSL https://app.torizon.io/statics/scripts/provision-device.sh | bash -s 
 SCRIPT
 
 echo "Your device is provisioned! ⭐"
-echo "Create the torizon user to be able to use remote access"
-echo "${SUDO} adduser torizon && ${SUDO} systemctl restart remote-access"
