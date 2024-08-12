@@ -30,6 +30,19 @@ echo '                                                    '
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
+check_if_already_provisioned () {
+  if [ -f /var/sota/import/info.json ]; then
+      read -rp "Device already provisioned! Do you want to reprovision it? [y/N]" reprovision
+      if [ -z "$reprovision" ] || [ "$reprovision" = "N" ] || [ "$reprovision" = "n" ]; then
+        exit 0
+      elif [ "$reprovision" = "Y" ] || [ "$reprovision" = "y" ]; then
+        :
+      else
+        check_if_already_provisioned
+      fi
+  fi
+}
+
 # Determine package type to install: https://unix.stackexchange.com/a/6348
 # OS used by all - for Debs it must be Ubuntu or Debian
 # CODENAME only used for Debs
@@ -199,6 +212,8 @@ fi
     adduser torizon docker
 SCRIPT
 }
+
+check_if_already_provisioned
 
 case ${ARCH} in
     amd64|arm64)
