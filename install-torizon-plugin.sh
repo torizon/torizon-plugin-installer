@@ -339,7 +339,7 @@ while true; do
 done
 
 sh <<SCRIPT
-curl -fsSL https://app.torizon.io/statics/scripts/provision-device.sh | bash -s -- -u https://app.torizon.io/api/accounts/devices -t "${access}" && systemctl restart aktualizr
+curl -fsSL https://app.torizon.io/statics/scripts/provision-device.sh | bash -s -- -u https://app.torizon.io/api/accounts/devices -t "${access}" && systemctl restart aktualizr remote-access
 SCRIPT
 
 echo "Your device is provisioned! ⭐"
