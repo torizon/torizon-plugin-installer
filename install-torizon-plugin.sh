@@ -108,6 +108,16 @@ EOF
     apt-get -y update -qq >/dev/null
     apt-get -y install -qq ${PKGS_TO_INSTALL} >/dev/null
 
+    if [ ! -f /usr/bin/docker-compose ]; then
+      cat > /usr/bin/docker-compose <<EOF
+#!/bin/sh
+# make docker-compose an "alias" do docker compose
+
+docker compose \$@
+EOF
+    chmod a+x /usr/bin/docker-compose
+    fi
+
     if [ ! -f /etc/systemd/system/docker-compose.service ]; then
       cat > /etc/systemd/system/docker-compose.service <<EOF
 [Unit]
@@ -254,6 +264,7 @@ check_if_already_provisioned
 echo "This script will:
   - Add Toradex's, Fluent Bit's and Docker's package feed to your system;
   - Install fluent-bit, docker, aktualizr and rac (remote access client) applications;
+  - Create a docker-compose binary at /usr/bin;
   - Install a docker-compose systemd service;
   - Create torizon user and add it to sudo and docker groups;
   - Attempt to provision the device on Torizon Cloud using a pair code."
