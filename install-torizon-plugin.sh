@@ -108,6 +108,31 @@ EOF
     apt-get -y update -qq >/dev/null
     apt-get -y install -qq ${PKGS_TO_INSTALL} >/dev/null
 
+    if [ ! -f /etc/systemd/system/docker-compose.service ]; then
+      cat > /etc/systemd/system/docker-compose.service <<EOF
+[Unit]
+Description=Docker Compose service with docker compose
+Requires=docker.service
+After=docker.service
+ConditionPathExists=/var/sota/storage/docker-compose/docker-compose.yml
+ConditionPathExists=!/var/sota/storage/docker-compose/docker-compose.yml.tmp
+OnFailure=docker-integrity-checker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/var/sota/storage/docker-compose/
+ExecStart=/usr/bin/docker-compose -p torizon up -d --remove-orphans
+ExecStartPost=rm -f /tmp/recovery-attempt.txt
+ExecStop=/usr/bin/docker-compose -p torizon down
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+    systemctl enable docker-compose
+    fi
+
 if [ -f /etc/fluent-bit/fluent-bit.conf ]; then
 rm -f /etc/fluent-bit/fluent-bit.conf
     cat > /etc/fluent-bit/fluent-bit.conf <<EOF
@@ -229,6 +254,7 @@ check_if_already_provisioned
 echo "This script will:
   - Add Toradex's, Fluent Bit's and Docker's package feed to your system;
   - Install fluent-bit, docker, aktualizr and rac (remote access client) applications;
+  - Install a docker-compose systemd service;
   - Create torizon user and add it to sudo and docker groups;
   - Attempt to provision the device on Torizon Cloud using a pair code."
 
