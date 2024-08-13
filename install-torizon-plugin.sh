@@ -72,13 +72,9 @@ fi
 
 ARCH=$(dpkg --print-architecture)
 
-SUDO=sudo
-if [ "$(id -u)" -eq 0 ]; then
-    SUDO=''
-else
-    echo "You will be prompted for your password by sudo."
-    # Clear any previous sudo permission
-    sudo -k
+if [ "$(id -u)" != "0" ]; then
+    echo "This script should execute as root. Use sudo or run from root user."
+    exit 1
 fi
 
 install_torizon_repo () {
@@ -87,7 +83,6 @@ install_torizon_repo () {
 
     echo "Installation has started, it may take a few minutes."
 
-    $SUDO sh <<SCRIPT
 export DEBIAN_FRONTEND=noninteractive
 mkdir -p /usr/share/keyrings/
 
@@ -256,7 +251,6 @@ fi
     fi
     adduser torizon sudo
     adduser torizon docker
-SCRIPT
 }
 
 check_if_already_provisioned
@@ -344,7 +338,7 @@ while true; do
     fi
 done
 
-$SUDO sh <<SCRIPT
+sh <<SCRIPT
 curl -fsSL https://app.torizon.io/statics/scripts/provision-device.sh | bash -s -- -u https://app.torizon.io/api/accounts/devices -t "${access}" && systemctl restart aktualizr
 SCRIPT
 
