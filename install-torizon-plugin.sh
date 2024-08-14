@@ -267,11 +267,11 @@ check_if_install
 
 case ${ARCH} in
     amd64|arm64)
-        PKGS_TO_INSTALL="aktualizr-torizon containerd.io docker-ce docker-ce-cli docker-compose-plugin fluent-bit rac"
+        PKGS_TO_INSTALL="aktualizr-torizon containerd.io docker-ce docker-ce-cli docker-compose-plugin fluent-bit rac sudo"
         ;;
 
     armhf)
-        PKGS_TO_INSTALL="aktualizr-torizon containerd.io docker-ce docker-ce-cli docker-compose-plugin rac"
+        PKGS_TO_INSTALL="aktualizr-torizon containerd.io docker-ce docker-ce-cli docker-compose-plugin rac sudo"
         ;;
 
     *)
