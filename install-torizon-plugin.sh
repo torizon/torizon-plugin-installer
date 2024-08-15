@@ -86,22 +86,24 @@ install_torizon_repo () {
 export DEBIAN_FRONTEND=noninteractive
 mkdir -p /usr/share/keyrings/
 
-    apt-get -y update -qq >/dev/null && apt-get install -y -qq curl gpg >/dev/null
+    echo "Installing curl and gpg" > /tmp/install-torizon-plugin.log
+    apt-get -y update -qq >> /tmp/install-torizon-plugin.log 2>&1 && apt-get install -y -qq curl gpg >>/tmp/install-torizon-plugin.log 2>&1
 
     curl -fsSL https://feeds.toradex.com/staging/"${OS}"/toradex-debian-repo-19092023.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
     curl -fsSL https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg
     curl -fsSL "https://download.docker.com/linux/${OS}/gpg" | gpg --dearmor > /usr/share/keyrings/docker.gpg
 
-    echo "Adding the following package feeds:"
     cat > /etc/apt/sources.list.d/toradex.list <<EOF
 deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/staging/${OS}/ ${SUITE} ${COMPONENT}
 deb [signed-by=/usr/share/keyrings/fluentbit-keyring.gpg] https://packages.fluentbit.io/${OS}/${CODENAME} ${CODENAME} main
 deb [signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/${OS} ${CODENAME} stable
 EOF
+    echo "Adding the following package feeds:" >> /tmp/install-torizon-plugin.log
+    cat /etc/apt/sources.list.d/toradex.list >> /tmp/install-torizon-plugin.log
 
-    cat /etc/apt/sources.list.d/toradex.list
-    apt-get -y update -qq >/dev/null
-    apt-get -y install -qq ${PKGS_TO_INSTALL} >/dev/null
+    echo "Installing dependencies (${PKGS_TO_INSTALL})" >> /tmp/install-torizon-plugin.log
+    apt-get -y update -qq >> /tmp/install-torizon-plugin.log 2>&1
+    apt-get -y install -qq ${PKGS_TO_INSTALL} >> /tmp/install-torizon-plugin.log 2>&1
 
     if [ ! -f /usr/bin/docker-compose ]; then
       cat > /usr/bin/docker-compose <<EOF
@@ -111,6 +113,8 @@ EOF
 docker compose \$@
 EOF
     chmod a+x /usr/bin/docker-compose
+    echo "Adding /usr/bin/docker-compose:" >> /tmp/install-torizon-plugin.log
+    cat /usr/bin/docker-compose >> /tmp/install-torizon-plugin.log
     fi
 
     if [ ! -f /etc/systemd/system/docker-compose.service ]; then
@@ -135,7 +139,9 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
     systemctl daemon-reload
-    systemctl enable docker-compose
+    systemctl enable docker-compose >> /tmp/install-torizon-plugin.log 2>&1
+    echo "Adding /etc/systemd/system/docker-compose.service:" >> /tmp/install-torizon-plugin.log
+    cat /etc/systemd/system/docker-compose.service >> /tmp/install-torizon-plugin.log
     fi
 
 if [ -f /etc/fluent-bit/fluent-bit.conf ]; then
@@ -233,6 +239,8 @@ rm -f /etc/fluent-bit/fluent-bit.conf
     tls.crt_file /var/sota/import/client.pem
     Retry_Limit  10
 EOF
+    echo "Adding /etc/fluent-bit/fluent-bit.conf:" >> /tmp/install-torizon-plugin.log
+    cat /etc/fluent-bit/fluent-bit.conf >> /tmp/install-torizon-plugin.log
 fi
 
     # gecos option has changed to comment in bookworm or newer
@@ -245,12 +253,12 @@ fi
             ;;
     esac
 
-    if [ -z "$(id -u torizon)" ]; then
+    if [ -z "$(id -u torizon 2>> /tmp/install-torizon-plugin.log)" ]; then
         echo "Now we have to create the torizon user so remote access works out of the box. Please, fill in the password for torizon user."
         adduser ${adduser_gecos_opt} '' torizon
     fi
-    adduser torizon sudo
-    adduser torizon docker
+    adduser torizon sudo >> /tmp/install-torizon-plugin.log 2>&1
+    adduser torizon docker >> /tmp/install-torizon-plugin.log 2>&1
 }
 
 check_if_already_provisioned
@@ -261,7 +269,8 @@ echo "This script will:
   - Create a docker-compose binary at /usr/bin;
   - Install a docker-compose systemd service;
   - Create torizon user and add it to sudo and docker groups;
-  - Attempt to provision the device on Torizon Cloud using a pair code."
+  - Attempt to provision the device on Torizon Cloud using a pair code;
+  - Create a log file in /tmp/install-torizon-plugin.log."
 
 check_if_install
 
@@ -310,7 +319,7 @@ case ${OS} in
         ;;
 esac
 
-echo "Installation of Aktualizr completed!"
+echo "Installation of dependencies completed!"
 
 # Early exit for CI
 if [ -n "$DO_NOT_PROVISION" ]; then
@@ -318,8 +327,8 @@ if [ -n "$DO_NOT_PROVISION" ]; then
     aktualizr-torizon --version
     exit 0
 fi
-echo "Ready to pair..."
 echo "Retrieving one-time pairing token"
+echo "Ready to pair..."
 
 response=$(curl -fsSL "https://app.torizon.io/api/provision-code")
 code=$(echo "$response" | awk -F'"' '/provisionCode/{print $4}')
