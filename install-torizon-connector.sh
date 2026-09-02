@@ -113,7 +113,7 @@ install_torizon_repo () {
     echo "Installing curl and gpg" > "$LOGFILE"
     apt-get -y update -qq >> "$LOGFILE" 2>&1 && apt-get install -y -qq curl gpg >>"$LOGFILE" 2>&1
 
-    curl -fsSL https://feeds.toradex.com/stable/connector/toradex-debian-repo-07102024.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
+    curl -fsSL https://feeds.toradex.com/torizon/connector/toradex-debian-repo-07102024.asc | gpg --dearmor > /usr/share/keyrings/toradex.gpg
     curl -fsSL https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg
 
     # Only add Docker key if Docker is not already installed
@@ -123,7 +123,7 @@ install_torizon_repo () {
 
     # Always add Toradex and Fluent Bit feeds
     cat > /etc/apt/sources.list.d/toradex.list <<EOF
-deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/stable/connector/${OS}/${CODENAME} ${CODENAME} ${COMPONENT}
+deb [signed-by=/usr/share/keyrings/toradex.gpg] https://feeds.toradex.com/torizon/connector/${OS}/${CODENAME} ${CODENAME} ${COMPONENT}
 deb [signed-by=/usr/share/keyrings/fluentbit-keyring.gpg] https://packages.fluentbit.io/${OS}/${CODENAME} ${CODENAME} main
 EOF
 
